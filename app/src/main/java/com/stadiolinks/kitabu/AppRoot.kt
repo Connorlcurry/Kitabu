@@ -18,10 +18,10 @@ fun AppRoot() {
 
     val navController = rememberNavController()
 
-    val onNavigateToLogin: (String) -> Unit = { _ -> navController.navigateToLogin() }
-    val onNavigateToCatalog: (String) -> Unit = { _ -> navController.navigateToCatalog() }
-    val onNavigateToRegister: (String) -> Unit = { _ -> navController.navigateToRegister() }
-    val onNavigateToDashboard: (String) -> Unit = { _ -> navController.navigateToDashboard() }
+    val onNavigateToLogin = { navController.navigateToLogin() }
+    val onNavigateToCatalog = {  navController.navigateToCatalog() }
+    val onNavigateToRegister = { navController.navigateToRegister() }
+    val onNavigateToDashboard = { navController.navigateToDashboard() }
 
     NavHost(
 
@@ -39,6 +39,7 @@ fun AppRoot() {
 
         catalogScreen(
 
+            onNavigateToLogin = onNavigateToLogin,
             onNavigateToCatalog = onNavigateToCatalog,
             onNavigateToDashboard = onNavigateToDashboard
 

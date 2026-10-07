@@ -40,7 +40,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "kitabu_database"
 
-                ).createFromAsset("assets/kitabu.db")
+                ).createFromAsset("kitabu.db")
                     .fallbackToDestructiveMigration()
                     .build()
 
