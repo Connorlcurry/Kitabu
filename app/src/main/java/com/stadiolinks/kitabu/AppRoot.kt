@@ -55,6 +55,7 @@ fun AppRoot() {
         reservationDashboardScreen(
 
             onNavigateToCatalog = onNavigateToCatalog,
+            onNavigateToDashboard = onNavigateToDashboard,
             onNavigateToLogin = onNavigateToLogin
 
         )

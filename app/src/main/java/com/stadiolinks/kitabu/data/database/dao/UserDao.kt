@@ -16,6 +16,9 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE userID = :userID")
     suspend fun getUserById(userID: Int): UserEntity? // Fetches a specific record from the users table by ID
 
+    @Query("SELECT * FROM users WHERE userID = :userID LIMIT 1")
+    fun getCurrentUser(userID: Int): Flow<UserEntity?> // Fetches the current user by ID
+
     @Query("SELECT * FROM users WHERE email = :email")
     suspend fun getUserByEmail(email: String): UserEntity? // Fetches a specific record from the users table by email
 

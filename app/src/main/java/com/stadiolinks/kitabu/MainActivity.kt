@@ -26,8 +26,7 @@ class MainActivity : ComponentActivity() {
             KitabuTheme {
 
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     AppRoot()
                 }

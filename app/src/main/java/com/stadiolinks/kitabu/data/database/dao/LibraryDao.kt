@@ -14,8 +14,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface LibraryDao {
 
+    @Query("SELECT * FROM books")
+    fun getAllBooks(): Flow<List<BookEntity>> // Retrieves all books from the database
+
     @Query("SELECT * FROM books WHERE isAvailable = true")
-    suspend fun getAvailableBooks(): List<BookEntity> // Retrieves all available books from the database
+    fun getAvailableBooks(): Flow<List<BookEntity>> // Retrieves all available books from the database
 
     @Query("SELECT * FROM books WHERE title LIKE '%' || :searchQuery || '%'")
     fun searchBooks(searchQuery: String): Flow<List<BookEntity>> // Searches for books by title

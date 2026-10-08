@@ -1,10 +1,16 @@
 package com.stadiolinks.kitabu.data.repository
 
 import android.content.Context
+import com.stadiolinks.kitabu.AuthState
+import com.stadiolinks.kitabu.data.database.dao.LibraryDao
 import com.stadiolinks.kitabu.data.database.dao.UserDao
+import com.stadiolinks.kitabu.data.database.entities.BookEntity
 import com.stadiolinks.kitabu.data.database.entities.UserEntity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class UserRepository(
 
@@ -112,6 +118,14 @@ class UserRepository(
             Result.failure(e)
 
         }
+
+    }
+
+    // Function that retrieves the current user
+    suspend fun getCurrentUser(): UserEntity? {
+
+        val email = sharedPref.getString("logged_in_email", null) ?: return null
+        return userDao.getUserByEmail(email)
 
     }
 
