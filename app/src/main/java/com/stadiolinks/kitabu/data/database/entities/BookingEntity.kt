@@ -3,9 +3,9 @@ package com.stadiolinks.kitabu.data.database.entities
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
-import java.sql.Timestamp
 
 enum class Status {
 
@@ -13,7 +13,7 @@ enum class Status {
 
 }
 
-// Converter class for the Status enum and Timestamp type
+// Converter class for the Status enum
 class Converters {
 
     @TypeConverter
@@ -21,12 +21,6 @@ class Converters {
 
     @TypeConverter
     fun toStatus(value: String): Status = Status.valueOf(value)
-
-    @TypeConverter
-    fun fromTimestamp(value: Timestamp?): Long? = value?.time
-
-    @TypeConverter
-    fun toTimestamp(value: Long?): Timestamp? = value?.let { Timestamp(it) }
 
 }
 
@@ -50,11 +44,15 @@ class Converters {
             onDelete = CASCADE,
             onUpdate = CASCADE
         )
+    ],
 
+    // Indices for foreign keys to improve database query performance
+    indices = [
+        Index(value = ["bookOwnerID"]),
+        Index(value = ["bookID"])
     ]
 
 )
-
 data class BookingEntity(
 
     @PrimaryKey(autoGenerate = true)
@@ -66,8 +64,8 @@ data class BookingEntity(
     val bookID: Int,
 
     // Booking details
-    val bookingDate: Timestamp,
-    val returnDeadline: Timestamp,
+    val bookingDate: String,
+    val returnDeadline: String,
     val status: Status = Status.PENDING
 
 )

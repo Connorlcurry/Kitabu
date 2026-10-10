@@ -20,7 +20,8 @@ class UserRepository(
 ) {
 
     // Initializes shared preferences
-    private val sharedPref = context.applicationContext.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+    private val sharedPref = context.applicationContext
+        .getSharedPreferences("user_session", Context.MODE_PRIVATE)
 
     // Checks if user session is currently active
     fun isLoggedIn(): Boolean {
@@ -126,6 +127,13 @@ class UserRepository(
 
         val email = sharedPref.getString("logged_in_email", null) ?: return null
         return userDao.getUserByEmail(email)
+
+    }
+
+    // Function that deletes user by their ID
+    suspend fun deleteUser(userID: Int) {
+
+        userDao.deleteUser(userID)
 
     }
 

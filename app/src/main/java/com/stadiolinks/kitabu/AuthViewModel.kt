@@ -5,8 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stadiolinks.kitabu.data.database.entities.UserEntity
 import com.stadiolinks.kitabu.data.repository.UserRepository
+import com.stadiolinks.kitabu.data.database.entities.ActiveBookingEntity
 import com.stadiolinks.kitabu.data.database.entities.BookEntity
+import com.stadiolinks.kitabu.data.database.entities.BookingEntity
 import com.stadiolinks.kitabu.data.repository.LibraryRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +37,35 @@ class AuthViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    val activeBookings: StateFlow<List<ActiveBookingEntity>> = libraryRepository.getActiveBookings()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    // Calculates the number of days left for a booking
+    fun getDaysBetween(bookingID: Int): Long {
+
+        val booking = activeBookings.value.find { it.booking.bookingID == bookingID }?.booking
+
+        return booking?.let {
+
+            try {
+
+                val deadline = java.time.LocalDate.parse(it.returnDeadline)
+                java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), deadline)
+
+            } catch (_: Exception) {
+
+                0L
+
+            }
+
+        } ?: 0L
+
+    }
 
     // Loads the current user
     fun loadCurrentUser() {
@@ -83,6 +115,48 @@ class AuthViewModel(
             userRepository.logoutUser()
                 .onSuccess { _authState.value = AuthState.LoggedOut }
                 .onFailure { exception -> _authState.value = AuthState.Error(exception.message ?: "Logout failed.") }
+
+        }
+
+    }
+
+    // Triggers the deleteUser function
+    fun deleteUser(userID: Int) {
+
+        viewModelScope.launch(Dispatchers.IO) {
+
+            try {
+
+                _authState.value = AuthState.Loading
+                userRepository.deleteUser(userID)
+                _authState.value = AuthState.Idle
+
+            } catch (e: Exception) {
+
+                _authState.value = AuthState.Error(e.message ?: "Failed to delete user")
+
+            }
+
+        }
+
+    }
+
+    // Adds a new booking and updates the relevant book's availability
+    fun addBooking(booking: BookingEntity, book: BookEntity) {
+
+        viewModelScope.launch {
+
+            try {
+
+                _authState.value = AuthState.Loading
+                libraryRepository.addBooking(booking, book)
+                _authState.value = AuthState.Idle
+
+            } catch (e: Exception) {
+
+                _authState.value = AuthState.Error(e.message ?: "Failed to add booking.")
+
+            }
 
         }
 

@@ -14,9 +14,6 @@ data class UserEntity(
     val userName: String,
     val email: String,
     val password: String,
-
-    // Book renting details
-    val currentBooksRented: Int = 0,
     val outstandingFines: Double = 0.0
 
 )

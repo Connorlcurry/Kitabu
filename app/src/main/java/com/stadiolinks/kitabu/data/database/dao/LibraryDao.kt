@@ -20,18 +20,29 @@ interface LibraryDao {
     @Query("SELECT * FROM books WHERE isAvailable = true")
     fun getAvailableBooks(): Flow<List<BookEntity>> // Retrieves all available books from the database
 
-    @Query("SELECT * FROM books WHERE title LIKE '%' || :searchQuery || '%'")
-    fun searchBooks(searchQuery: String): Flow<List<BookEntity>> // Searches for books by title
-
     @Transaction
     @Query("SELECT * FROM bookings WHERE status = 'ACTIVE'")
-    suspend fun getActiveBookings(): List<ActiveBookingEntity> // Retrieves all active bookings from the database
+    fun getActiveBookings(): Flow<List<ActiveBookingEntity>> // Retrieves all active bookings from the database
+
+    @Query("SELECT JULIANDAY(returnDeadline) - JULIANDAY(bookingDate) AS daysBetween FROM bookings WHERE bookingID = :bookingID")
+    suspend fun getDaysBetween(bookingID: Int): Int // Calculates the number of days between the booking date and the return deadline
 
     @Insert
     suspend fun addBook(book: BookEntity) // Inserts a new book into the database
 
     @Insert
-    suspend fun addBooking(booking: BookingEntity) // Inserts a new booking into the database
+    suspend fun insertBooking(booking: BookingEntity) // Inserts a new booking into the database
+
+    @Update
+    suspend fun updateBookAvailability(book: BookEntity) // Updates the availability of a book when it is booked
+
+    @Transaction
+    suspend fun addBooking(booking: BookingEntity, book: BookEntity) {
+        
+        insertBooking(booking)
+        updateBookAvailability(book.copy(isAvailable = false))
+
+    }
 
     @Update
     suspend fun extendBookingPeriod(booking: BookingEntity) // Updates the booking period of an existing booking

@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.stadiolinks.kitabu.data.database.dao.LibraryDao
 import com.stadiolinks.kitabu.data.database.dao.UserDao
 import com.stadiolinks.kitabu.data.database.entities.Converters
@@ -43,6 +44,7 @@ abstract class AppDatabase : RoomDatabase() {
                 ).createFromAsset("kitabu.db")
                     .fallbackToDestructiveMigration()
                     .build()
+
 
                 INSTANCE = instance
                 instance

@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,23 +13,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AddChart
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.DesignServices
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -37,7 +35,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,10 +44,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -63,10 +64,16 @@ import com.stadiolinks.kitabu.AuthViewModel
 import com.stadiolinks.kitabu.AuthViewModelFactory
 import com.stadiolinks.kitabu.components.NavigationDrawerContent
 import com.stadiolinks.kitabu.data.database.AppDatabase
+import com.stadiolinks.kitabu.data.database.entities.BookEntity
+import com.stadiolinks.kitabu.data.database.entities.BookingEntity
 import com.stadiolinks.kitabu.data.repository.LibraryRepository
 import com.stadiolinks.kitabu.data.repository.UserRepository
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import java.sql.Date
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,15 +92,22 @@ fun CatalogScreen(
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    var selectedBook by remember { mutableStateOf<BookEntity?>(null) }
 
     val books by authViewModel.bookList.collectAsStateWithLifecycle()
 
+    val currentDate = LocalDate.now()
+    val twoWeeksLater = currentDate.plusWeeks(2)
+
+    // Variable that stores the search query
     var query by rememberSaveable { mutableStateOf("") }
+    // Variable that stores the filtered books based on the search query
     val filteredBooks = remember(query, books) {
         if (query.isBlank()) {
             books
         } else {
             books.filter { book ->
+                // Filters search results based on the book's title, author and category
                 book.title.contains(query, ignoreCase = true) ||
                 book.author.contains(query, ignoreCase = true) ||
                 book.category.contains(query, ignoreCase = true)
@@ -178,8 +192,8 @@ fun CatalogScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = onNavigateToLogin,
-                    icon = { Icon(Icons.Default.ExitToApp, contentDescription = "Logout") },
+                    onClick = { authViewModel.logout() },
+                    icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout") },
                     label = { Text("Logout") }
                 )
 
@@ -269,9 +283,131 @@ fun CatalogScreen(
                             title = book.title,
                             author = book.author,
                             category = book.category,
-                            isAvailable = book.isAvailable
+                            isAvailable = book.isAvailable,
+                            onClick = { selectedBook = book }
 
                         )
+
+                    }
+
+                }
+
+            }
+
+            // Modal bottom sheet that displays book details with button to reserve the book if available
+            selectedBook?.let { book ->
+
+                ModalBottomSheet(
+
+                    onDismissRequest = { selectedBook = null }
+
+                ) {
+
+                    Column(
+
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+
+                    ) {
+
+                        Column(
+
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+
+                        ) {
+
+                            Text(
+
+                                text = "Book Reservation",
+                                fontSize = 25.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xffFF6663)
+
+                            )
+
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(text = book.title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(text = "Author: ${book.author}", fontSize = 14.sp)
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(text = "Category: ${book.category}", fontSize = 14.sp)
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+
+                        ) {
+
+                            Text(
+                                text = buildAnnotatedString {
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append("Start date: ")
+                                    }
+                                    append(currentDate.toString())
+                                }
+                            )
+
+                            Text(
+                                text = buildAnnotatedString {
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append("Return date: ")
+                                    }
+                                    append(twoWeeksLater.toString())
+                                }
+                            )
+
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Button(
+
+                            onClick = {
+
+                                val newBooking = BookingEntity(
+                                    bookOwnerID = currentUser?.userID ?: 0,
+                                    userName = currentUser?.userName ?: "",
+                                    bookID = book.bookID,
+                                    bookingDate = currentDate.toString(),
+                                    returnDeadline = twoWeeksLater.toString()
+                                )
+
+                                authViewModel.addBooking(newBooking, book)
+                                selectedBook = null
+
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = book.isAvailable,
+                            colors = ButtonDefaults.buttonColors(
+
+                                containerColor = Color(0xff0B3954)
+
+                            )
+
+                        ) {
+
+                            Text(
+
+                                if (book.isAvailable) "Reserve Book" else "Currently Unavailable"
+
+                            )
+
+                        }
 
                     }
 
@@ -287,10 +423,19 @@ fun CatalogScreen(
 
 // Composable that serves as the template for the book item card
 @Composable
-fun BookItemCard(title: String, author: String, category: String, isAvailable: Boolean) {
+fun BookItemCard(
+
+    title: String,
+    author: String,
+    category: String,
+    isAvailable: Boolean,
+    onClick: () -> Unit
+
+) {
 
     Card(
 
+        onClick = onClick,
         colors = CardDefaults.cardColors(
 
             containerColor = Color.White
@@ -318,17 +463,16 @@ fun BookItemCard(title: String, author: String, category: String, isAvailable: B
 
             Spacer(modifier = Modifier.height(4.dp))
 
+            val badgeColor = if (isAvailable) Color(0x802E7D32) else Color(0x80C62828)
+
             Text(
 
                 text = if (isAvailable) "Available" else "Borrowed",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
-                modifier = if
-                        (isAvailable) Modifier.background(shape = RoundedCornerShape(25.dp), color = Color(0x802E7D32))
-                    .padding(8.dp)
-                else
-                    Modifier.background(shape = RoundedCornerShape(25.dp), color = Color(0x80C62828))
+                modifier = Modifier
+                    .background(shape = RoundedCornerShape(25.dp), color = badgeColor)
                     .padding(8.dp)
 
             )
