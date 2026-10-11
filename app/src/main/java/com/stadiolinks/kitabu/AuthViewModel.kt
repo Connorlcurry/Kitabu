@@ -38,7 +38,7 @@ class AuthViewModel(
             initialValue = emptyList()
         )
 
-    val activeBookings: StateFlow<List<ActiveBookingEntity>> = libraryRepository.getActiveBookings()
+    val activeBookings: StateFlow<List<ActiveBookingEntity>> = libraryRepository.getActiveAndPendingBookings()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -141,6 +141,26 @@ class AuthViewModel(
 
     }
 
+    fun addBook(book: BookEntity) {
+
+        viewModelScope.launch {
+
+            try {
+
+                _authState.value = AuthState.Loading
+                libraryRepository.addBook(book)
+                _authState.value = AuthState.Idle
+
+            } catch (e: Exception) {
+
+                _authState.value = AuthState.Error(e.message ?: "Failed to add book.")
+
+            }
+
+        }
+
+    }
+
     // Adds a new booking and updates the relevant book's availability
     fun addBooking(booking: BookingEntity, book: BookEntity) {
 
@@ -155,6 +175,89 @@ class AuthViewModel(
             } catch (e: Exception) {
 
                 _authState.value = AuthState.Error(e.message ?: "Failed to add booking.")
+
+            }
+
+        }
+
+    }
+
+    fun updateStatusToActive(bookingID: Int) {
+
+        viewModelScope.launch {
+
+            try {
+
+                _authState.value = AuthState.Loading
+                libraryRepository.updateStatusToActive(bookingID)
+                _authState.value = AuthState.Idle
+
+            } catch (e: Exception) {
+
+                _authState.value = AuthState.Error(e.message ?: "Failed to confirm booking.")
+
+            }
+
+        }
+
+    }
+
+    // Updates the booking period of an existing booking
+    fun extendBookingPeriod(bookEntity: BookEntity, bookingID: Int) {
+
+        viewModelScope.launch {
+
+            try {
+
+                _authState.value = AuthState.Loading
+                libraryRepository.extendBookingPeriod(bookEntity, bookingID)
+                _authState.value = AuthState.Idle
+
+            } catch (e: Exception) {
+
+                _authState.value = AuthState.Error(e.message ?: "Failed to renew book.")
+
+            }
+
+        }
+
+    }
+
+    // Updates book availability to available and booking status to RETURNED
+    fun returnBook(bookingID: Int, bookID: Int) {
+
+        viewModelScope.launch {
+
+            try {
+
+                _authState.value = AuthState.Loading
+                libraryRepository.returnBook(bookingID, bookID)
+                _authState.value = AuthState.Idle
+
+            } catch (e: Exception) {
+
+                _authState.value = AuthState.Error(e.message ?: "Failed to return book.")
+
+            }
+
+        }
+
+    }
+
+    // Cancels a booking and restores book availability
+    fun cancelPendingBooking(bookingID: Int, bookID: Int) {
+
+        viewModelScope.launch {
+
+            try {
+
+                _authState.value = AuthState.Loading
+                libraryRepository.cancelPendingBooking(bookingID, bookID)
+                _authState.value = AuthState.Idle
+
+            } catch (e: Exception) {
+
+                _authState.value = AuthState.Error(e.message ?: "Failed to cancel pending booking.")
 
             }
 

@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddChart
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Clear
@@ -24,6 +25,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -93,6 +95,11 @@ fun CatalogScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var selectedBook by remember { mutableStateOf<BookEntity?>(null) }
+
+    var showAddBookSheet by remember { mutableStateOf(false) }
+    var titleInput by remember { mutableStateOf("") }
+    var authorInput by remember { mutableStateOf("") }
+    var categoryInput by remember { mutableStateOf("") }
 
     val books by authViewModel.bookList.collectAsStateWithLifecycle()
 
@@ -195,6 +202,28 @@ fun CatalogScreen(
                     onClick = { authViewModel.logout() },
                     icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout") },
                     label = { Text("Logout") }
+                )
+
+            }
+
+        },
+        floatingActionButton = {
+
+            FloatingActionButton(
+
+                onClick = { showAddBookSheet = true },
+                containerColor = Color(0xff0B3954),
+                contentColor = Color.White,
+                shape = RoundedCornerShape(50.dp)
+
+            ) {
+
+                Icon(
+
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Book",
+                    tint = Color.White
+
                 )
 
             }
@@ -406,6 +435,122 @@ fun CatalogScreen(
                                 if (book.isAvailable) "Reserve Book" else "Currently Unavailable"
 
                             )
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            // Modal bottom sheet that provides a form to add a new book
+            if (showAddBookSheet) {
+
+                ModalBottomSheet(
+
+                    onDismissRequest = {
+
+                        showAddBookSheet = false
+                        titleInput = ""
+                        authorInput = ""
+                        categoryInput = ""
+
+                    }
+
+                ) {
+
+                    Column(
+
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+
+                    ) {
+
+                        Text(
+
+                            text = "Add New Book",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xff0B3954)
+
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+
+                            value = titleInput,
+                            onValueChange = { titleInput = it },
+                            label = { Text("Title") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(50.dp)
+
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        OutlinedTextField(
+
+                            value = authorInput,
+                            onValueChange = { authorInput = it },
+                            label = { Text("Author") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(50.dp)
+
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        OutlinedTextField(
+
+                            value = categoryInput,
+                            onValueChange = { categoryInput = it },
+                            label = { Text("Category") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(50.dp)
+
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Submit Button
+                        Button(
+
+                            onClick = {
+
+                                if (titleInput.isNotBlank() && authorInput.isNotBlank()) {
+
+                                    val newBook = BookEntity(
+
+                                        title = titleInput.trim(),
+                                        author = authorInput.trim(),
+                                        category = categoryInput.trim().ifEmpty { "General" }
+
+                                    )
+
+                                    authViewModel.addBook(newBook)
+
+                                    // Close sheet and clear fields
+                                    showAddBookSheet = false
+                                    titleInput = ""
+                                    authorInput = ""
+                                    categoryInput = ""
+
+                                }
+
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = titleInput.isNotBlank() && authorInput.isNotBlank(),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xff0B3954))
+
+                        ) {
+
+                            Text("Add Book")
 
                         }
 

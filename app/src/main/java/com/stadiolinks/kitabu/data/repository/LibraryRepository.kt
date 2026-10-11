@@ -25,9 +25,15 @@ class LibraryRepository(
     }
 
     // Function that retrieves active bookings
-    fun getActiveBookings(): Flow<List<ActiveBookingEntity>> {
+    fun getActiveAndPendingBookings(): Flow<List<ActiveBookingEntity>> {
 
-        return libraryDao?.getActiveBookings() ?: flowOf(emptyList())
+        return libraryDao?.getBookingsByStatus(listOf("ACTIVE", "PENDING")) ?: flowOf(emptyList())
+
+    }
+
+    suspend fun addBook(book: BookEntity) {
+
+        libraryDao?.addBook(book)
 
     }
 
@@ -40,6 +46,30 @@ class LibraryRepository(
     suspend fun getDaysBetween(bookingID: Int): Int = withContext(Dispatchers.IO) {
 
         libraryDao?.getDaysBetween(bookingID) ?: 0
+
+    }
+
+    suspend fun updateStatusToActive(bookingID: Int) = withContext(Dispatchers.IO) {
+
+        libraryDao?.updateStatusToActive(bookingID)
+
+    }
+
+    suspend fun extendBookingPeriod(bookEntity: BookEntity, bookingID: Int) = withContext(Dispatchers.IO) {
+
+        libraryDao?.extendBookingPeriod(bookEntity, bookingID)
+
+    }
+
+    suspend fun returnBook(bookingID: Int, bookID: Int) = withContext(Dispatchers.IO) {
+
+        libraryDao?.returnBook(bookingID, bookID)
+
+    }
+
+    suspend fun cancelPendingBooking(bookingID: Int, bookID: Int) = withContext(Dispatchers.IO) {
+
+        libraryDao?.cancelPendingBooking(bookingID, bookID)
 
     }
 
