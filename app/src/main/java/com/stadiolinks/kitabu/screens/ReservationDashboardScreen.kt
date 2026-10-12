@@ -1,6 +1,7 @@
 package com.stadiolinks.kitabu.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,9 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AddChart
 import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -30,9 +31,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,8 +47,6 @@ import com.stadiolinks.kitabu.AuthState
 import com.stadiolinks.kitabu.AuthViewModel
 import com.stadiolinks.kitabu.AuthViewModelFactory
 import com.stadiolinks.kitabu.data.database.AppDatabase
-import com.stadiolinks.kitabu.data.database.entities.BookEntity
-import com.stadiolinks.kitabu.data.database.entities.BookingEntity
 import com.stadiolinks.kitabu.data.database.entities.Status
 import com.stadiolinks.kitabu.data.repository.LibraryRepository
 import com.stadiolinks.kitabu.data.repository.UserRepository
@@ -67,11 +63,13 @@ fun ReservationDashboardScreen(
 
 ) {
 
+    // State variables
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     val activeBookings by authViewModel.activeBookings.collectAsStateWithLifecycle()
 
+    // Launched effect to check authentication state
     LaunchedEffect(authState) {
 
         when (authState) {
@@ -126,7 +124,7 @@ fun ReservationDashboardScreen(
                 NavigationBarItem(
                     selected = false,
                     onClick = { authViewModel.logout() },
-                    icon = { Icon(Icons.Default.ExitToApp, contentDescription = "Logout") },
+                    icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout") },
                     label = { Text("Logout") }
                 )
 
@@ -136,6 +134,7 @@ fun ReservationDashboardScreen(
 
     ) { paddingValues ->
 
+        // If there are no active bookings, an error message stating so is displayed
         if (activeBookings.isEmpty()) {
 
             Box(
@@ -163,6 +162,7 @@ fun ReservationDashboardScreen(
 
             ) {
 
+                // Loops through all active and pending bookings and displays them in the card template
                 items(activeBookings) { activeBooking ->
 
                     Card(
@@ -214,11 +214,17 @@ fun ReservationDashboardScreen(
 
                             Spacer(modifier = Modifier.height(4.dp))
 
+                            val statusColor = when (activeBooking.booking.status) {
+                                Status.ACTIVE -> Color(0xFF37963C)
+                                Status.PENDING -> Color(0xFFFF9800)
+                                else -> Color(0xffFF6663)
+                            }
+
                             Text(
                                 text = "Status: ${activeBooking.booking.status}",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = Color(0xFF2E7D32)
+                                color = statusColor
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
@@ -242,7 +248,7 @@ fun ReservationDashboardScreen(
                                         },
                                         colors = ButtonDefaults.buttonColors(
 
-                                            containerColor = Color(0xFF2E7D32)
+                                            containerColor = Color(0xFF37963C)
 
                                         )
 
@@ -293,6 +299,7 @@ fun ReservationDashboardScreen(
 
                                 ) {
 
+                                    // Confirm button
                                     Button(
 
                                         onClick = {
@@ -302,7 +309,7 @@ fun ReservationDashboardScreen(
                                         },
                                         colors = ButtonDefaults.buttonColors(
 
-                                            containerColor = Color(0xFF2E7D32)
+                                            containerColor = Color(0xFF37963C)
 
                                         )
 
@@ -348,6 +355,15 @@ fun ReservationDashboardScreen(
 
                         }
 
+                        Box(
+
+                            modifier = Modifier
+                                .height(6.dp)
+                                .fillMaxWidth()
+                                .background(Color(0xff0B3954))
+
+                        )
+
                     }
 
                 }
@@ -360,9 +376,11 @@ fun ReservationDashboardScreen(
 
 }
 
+// Serializable object representing the dashboard destination
 @Serializable
 data object DashboardDestination
 
+// NavGraphBuilder extension function to define the dashboard screen
 fun NavGraphBuilder.reservationDashboardScreen(
 
     onNavigateToCatalog: () -> Unit,
@@ -371,6 +389,7 @@ fun NavGraphBuilder.reservationDashboardScreen(
 
 ) {
 
+    // Composable for the dashboard screen with its associated destination
     composable<DashboardDestination> {
 
         val context = LocalContext.current.applicationContext
@@ -393,6 +412,7 @@ fun NavGraphBuilder.reservationDashboardScreen(
 
 }
 
+// Extension function to navigate to the dashboard screen
 fun NavController.navigateToDashboard() {
 
     navigate(DashboardDestination)

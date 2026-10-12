@@ -1,16 +1,19 @@
 package com.stadiolinks.kitabu.data.repository
 
 import android.content.Context
-import com.stadiolinks.kitabu.AuthState
-import com.stadiolinks.kitabu.data.database.dao.LibraryDao
 import com.stadiolinks.kitabu.data.database.dao.UserDao
-import com.stadiolinks.kitabu.data.database.entities.BookEntity
 import com.stadiolinks.kitabu.data.database.entities.UserEntity
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+
+// ====================================================================================
+//
+// The user repository serves as the abstract mediator between the view model and user data.
+// The repository is injected with the User data access object and the application
+// context and executes the functions of the User data access object on a background
+// thread using coroutines, and then exposes the results to the AuthViewModel.
+//
+// ====================================================================================
 
 class UserRepository(
 
@@ -19,7 +22,7 @@ class UserRepository(
 
 ) {
 
-    // Initializes shared preferences
+    // Initializes shared preferences for the current user session
     private val sharedPref = context.applicationContext
         .getSharedPreferences("user_session", Context.MODE_PRIVATE)
 
@@ -30,7 +33,7 @@ class UserRepository(
 
     }
 
-    // Register function
+    // Logic for the register function
     suspend fun registerUser(
 
         user: UserEntity
@@ -59,7 +62,7 @@ class UserRepository(
 
     }
 
-    // Login function
+    // Logic for the login function
     suspend fun loginUser(
 
         email: String,
@@ -98,7 +101,7 @@ class UserRepository(
 
     }
 
-    // Logout function
+    // Logic for the logout function
     suspend fun logoutUser(): Result<Unit> = withContext(Dispatchers.IO) {
 
         return@withContext try {
@@ -122,18 +125,11 @@ class UserRepository(
 
     }
 
-    // Function that retrieves the current user
+    // Logic for the function that retrieves the current user
     suspend fun getCurrentUser(): UserEntity? {
 
         val email = sharedPref.getString("logged_in_email", null) ?: return null
         return userDao.getUserByEmail(email)
-
-    }
-
-    // Function that deletes user by their ID
-    suspend fun deleteUser(userID: Int) {
-
-        userDao.deleteUser(userID)
 
     }
 

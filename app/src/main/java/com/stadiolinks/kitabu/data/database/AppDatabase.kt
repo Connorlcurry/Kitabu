@@ -5,7 +5,6 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.stadiolinks.kitabu.data.database.dao.LibraryDao
 import com.stadiolinks.kitabu.data.database.dao.UserDao
 import com.stadiolinks.kitabu.data.database.entities.Converters
@@ -19,13 +18,14 @@ import com.stadiolinks.kitabu.data.database.entities.BookingEntity
     BookEntity::class,
     BookingEntity::class
 
-], version = 1, exportSchema = false)
-@TypeConverters(Converters::class)
+], version = 2, exportSchema = false)
+@TypeConverters(Converters::class) // Type converters for the database
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
     abstract fun libraryDao(): LibraryDao
 
+    // Singleton pattern to ensure only one instance of the database is created
     companion object {
 
         @Volatile
@@ -41,10 +41,9 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "kitabu_database"
 
-                ).createFromAsset("kitabu.db")
-                    .fallbackToDestructiveMigration()
+                ).createFromAsset("kitabu.db")      // Pre-populated database
+                    .fallbackToDestructiveMigration()               // Migration strategy to destroy and rebuild the database on version change
                     .build()
-
 
                 INSTANCE = instance
                 instance

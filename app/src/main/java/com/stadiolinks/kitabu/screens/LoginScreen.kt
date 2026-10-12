@@ -1,32 +1,22 @@
 package com.stadiolinks.kitabu.screens
 
-import android.R
-import android.annotation.SuppressLint
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -37,11 +27,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -52,7 +40,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -64,7 +51,6 @@ import com.stadiolinks.kitabu.AuthViewModelFactory
 import com.stadiolinks.kitabu.data.database.AppDatabase
 import com.stadiolinks.kitabu.data.repository.LibraryRepository
 import com.stadiolinks.kitabu.data.repository.UserRepository
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.Unit
 
@@ -185,6 +171,7 @@ fun LoginScreen(
 
                     )
 
+                    // Navigate to register button
                     TextButton(onClick = onNavigateToRegister) {
 
                         Text(
@@ -202,6 +189,7 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Email field
                     OutlinedTextField(
 
                         value = email,
@@ -220,6 +208,7 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Password field
                     OutlinedTextField(
 
                         value = password,
@@ -239,16 +228,19 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Login button
                     Button(
 
                         onClick = {
 
+                            // Checks fields are populated before executing the login function
                             if (email.isBlank() || password.isBlank()) {
 
                                 Toast.makeText(context, "Please enter both email and password.", Toast.LENGTH_SHORT).show()
 
                             } else {
 
+                                // Triggers the login function with the provided email and password
                                 authViewModel.login(email, password)
 
                             }
@@ -280,6 +272,7 @@ fun LoginScreen(
 @Serializable
 data object LoginDestination
 
+// NavGraphBuilder extension function to define the login screen
 fun NavGraphBuilder.loginScreen(
 
     onNavigateToCatalog: () -> Unit,
@@ -287,6 +280,7 @@ fun NavGraphBuilder.loginScreen(
 
 ) {
 
+    // Composable for the login screen with its associated destination
     composable<LoginDestination> {
 
         val context = LocalContext.current.applicationContext
@@ -308,6 +302,7 @@ fun NavGraphBuilder.loginScreen(
 
 }
 
+// Extension function to navigate to the login screen
 fun NavController.navigateToLogin() {
 
     navigate(LoginDestination)

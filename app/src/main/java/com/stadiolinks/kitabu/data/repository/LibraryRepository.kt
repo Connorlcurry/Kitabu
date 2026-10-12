@@ -10,6 +10,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 
+// ====================================================================================
+//
+// The library repository serves as a bridge between the view model and data related
+// to books and reservations.
+// The repository is injected with the Library data access object and the application
+// context and executes the functions of the Library data access object on a background
+// thread using coroutines, and then exposes the results to the AuthViewModel.
+//
+// ====================================================================================
+
 class LibraryRepository(
 
     private val libraryDao: LibraryDao? = null,
@@ -17,14 +27,12 @@ class LibraryRepository(
 
 ) {
 
-    // Function that retrieves all books
     fun getAllBooks(): Flow<List<BookEntity>> {
 
         return libraryDao?.getAllBooks() ?: flowOf(emptyList())
 
     }
 
-    // Function that retrieves active bookings
     fun getActiveAndPendingBookings(): Flow<List<ActiveBookingEntity>> {
 
         return libraryDao?.getBookingsByStatus(listOf("ACTIVE", "PENDING")) ?: flowOf(emptyList())

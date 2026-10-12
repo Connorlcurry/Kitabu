@@ -1,14 +1,19 @@
 package com.stadiolinks.kitabu.screens
 
 import android.widget.Toast
+import coil.compose.AsyncImage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,13 +28,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
@@ -37,21 +40,21 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -64,18 +67,14 @@ import androidx.navigation.compose.composable
 import com.stadiolinks.kitabu.AuthState
 import com.stadiolinks.kitabu.AuthViewModel
 import com.stadiolinks.kitabu.AuthViewModelFactory
-import com.stadiolinks.kitabu.components.NavigationDrawerContent
+import com.stadiolinks.kitabu.R
 import com.stadiolinks.kitabu.data.database.AppDatabase
 import com.stadiolinks.kitabu.data.database.entities.BookEntity
 import com.stadiolinks.kitabu.data.database.entities.BookingEntity
 import com.stadiolinks.kitabu.data.repository.LibraryRepository
 import com.stadiolinks.kitabu.data.repository.UserRepository
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import java.sql.Date
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,14 +87,12 @@ fun CatalogScreen(
 
 ) {
 
+    // State variables
     val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
     var selectedBook by remember { mutableStateOf<BookEntity?>(null) }
-
     var showAddBookSheet by remember { mutableStateOf(false) }
     var titleInput by remember { mutableStateOf("") }
     var authorInput by remember { mutableStateOf("") }
@@ -103,11 +100,13 @@ fun CatalogScreen(
 
     val books by authViewModel.bookList.collectAsStateWithLifecycle()
 
+    // Date variables
     val currentDate = LocalDate.now()
     val twoWeeksLater = currentDate.plusWeeks(2)
 
     // Variable that stores the search query
     var query by rememberSaveable { mutableStateOf("") }
+
     // Variable that stores the filtered books based on the search query
     val filteredBooks = remember(query, books) {
         if (query.isBlank()) {
@@ -122,12 +121,14 @@ fun CatalogScreen(
         }
     }
 
+    // Launch effect to load the current user
     LaunchedEffect(Unit) {
 
         authViewModel.loadCurrentUser()
 
     }
 
+    // Launch effect to check authentication state
     LaunchedEffect(authState) {
 
         when (authState) {
@@ -141,24 +142,6 @@ fun CatalogScreen(
         }
 
     }
-
-    ModalNavigationDrawer(
-
-        drawerState = drawerState,
-        drawerContent = {
-
-            NavigationDrawerContent(
-
-                onNavigateToLogin = onNavigateToLogin,
-                onNavigateToCatalog = onNavigateToCatalog,
-                onNavigateToDashboard = onNavigateToDashboard,
-                onCloseDrawer =  { scope.launch { drawerState.close() } }
-
-            )
-
-        }
-
-    ) { }
 
     Scaffold(
 
@@ -209,6 +192,7 @@ fun CatalogScreen(
         },
         floatingActionButton = {
 
+            // Floating action button that displays the form to add a new book
             FloatingActionButton(
 
                 onClick = { showAddBookSheet = true },
@@ -240,11 +224,19 @@ fun CatalogScreen(
 
         ) {
 
+            Text(
+
+                text = "Browse through all the books in our library",
+                fontSize = 16.sp,
+                modifier = Modifier.padding(bottom = 16.dp)
+
+            )
+
             // Search Bar
             OutlinedTextField(
 
                 value = query,
-                onValueChange = { query = it },
+                onValueChange = { query = it }, // Updates the search query
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
@@ -277,6 +269,7 @@ fun CatalogScreen(
             )
 
             // Lazy column that displays filtered books
+            // Embedded in the search bar as displaying all books in the library is the "default" filter
             LazyColumn(
 
                 modifier = Modifier.fillMaxWidth(),
@@ -284,6 +277,7 @@ fun CatalogScreen(
 
             ) {
 
+                // If no books are found, an error message stating so is displayed
                 if (filteredBooks.isEmpty()) {
 
                     item {
@@ -300,12 +294,13 @@ fun CatalogScreen(
 
                 } else {
 
+                    // If books are found, they are displayed in a list
                     items(
 
                         items = filteredBooks,
-                        key = { book -> book.bookID }
+                        key = { book -> book.bookID } // Unique identifier for each book
 
-                    ) { book ->
+                    ) { book -> // Book item card is displayed for each book
 
                         BookItemCard(
 
@@ -313,6 +308,7 @@ fun CatalogScreen(
                             author = book.author,
                             category = book.category,
                             isAvailable = book.isAvailable,
+                            coverImage = book.coverImage,
                             onClick = { selectedBook = book }
 
                         )
@@ -350,7 +346,7 @@ fun CatalogScreen(
 
                             Text(
 
-                                text = "Book Reservation",
+                                text = "Reserve ${book.title}",
                                 fontSize = 25.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xffFF6663)
@@ -361,20 +357,31 @@ fun CatalogScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        AsyncImage(
+
+                            model = book.coverImage ?: R.drawable.placeholder,
+                            contentDescription = "Book Cover",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
                         Text(text = book.title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(text = "Author: ${book.author}", fontSize = 14.sp)
+                        Text(text = "Category: ${book.category}", fontSize = 14.sp, fontStyle = FontStyle.Italic)
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(text = "Category: ${book.category}", fontSize = 14.sp)
+                        Text(text = "Author: ${book.author}", fontSize = 16.sp)
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
+                        // Date range text row
                         Row(
 
                             modifier = Modifier.fillMaxWidth(),
@@ -404,6 +411,7 @@ fun CatalogScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // Reserve button
                         Button(
 
                             onClick = {
@@ -416,7 +424,7 @@ fun CatalogScreen(
                                     returnDeadline = twoWeeksLater.toString()
                                 )
 
-                                authViewModel.addBooking(newBooking, book)
+                                authViewModel.addBooking(newBooking, book) // Adds new booking to the database
                                 selectedBook = null
 
                             },
@@ -523,13 +531,15 @@ fun CatalogScreen(
 
                             onClick = {
 
+                                // Validates input and adds new book to the database
                                 if (titleInput.isNotBlank() && authorInput.isNotBlank()) {
 
                                     val newBook = BookEntity(
 
                                         title = titleInput.trim(),
                                         author = authorInput.trim(),
-                                        category = categoryInput.trim().ifEmpty { "General" }
+                                        category = categoryInput.trim().ifEmpty { "General" },
+                                        coverImage = null
 
                                     )
 
@@ -574,6 +584,7 @@ fun BookItemCard(
     author: String,
     category: String,
     isAvailable: Boolean,
+    coverImage: ByteArray? = null,
     onClick: () -> Unit
 
 ) {
@@ -586,40 +597,75 @@ fun BookItemCard(
             containerColor = Color.White
 
         ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth()
+            .padding(vertical = 8.dp)
 
     ) {
 
-        Column(
+        Row(
 
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),  // The cover image matches the height of the left text column
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
 
         ) {
 
-            Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Box(
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(text = "Author: $author", fontSize = 14.sp)
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(text = "Category: $category", fontSize = 14.sp)
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            val badgeColor = if (isAvailable) Color(0x802E7D32) else Color(0x80C62828)
-
-            Text(
-
-                text = if (isAvailable) "Available" else "Borrowed",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
                 modifier = Modifier
-                    .background(shape = RoundedCornerShape(25.dp), color = badgeColor)
-                    .padding(8.dp)
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .background(Color(0xff0B3954))
 
+            )
+
+            Column(
+
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp)
+
+            ) {
+
+                Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(text = "Category: $category", fontSize = 12.sp, fontStyle = FontStyle.Italic)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(text = "Author: $author", fontSize = 16.sp)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val badgeColor = if (isAvailable) Color(0x802E7D32) else Color(0x80C62828)
+
+                Text(
+
+                    text = if (isAvailable) "Available" else "Borrowed",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier
+                        .background(shape = RoundedCornerShape(25.dp), color = badgeColor)
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+
+                )
+
+            }
+
+            AsyncImage(
+                model = coverImage ?: R.drawable.placeholder,
+                contentDescription = "Book Cover",
+                modifier = Modifier
+                    .width(110.dp)
+                    .fillMaxHeight(),
+                contentScale = ContentScale.Crop
             )
 
         }
@@ -628,9 +674,11 @@ fun BookItemCard(
 
 }
 
+// Serializable object representing the catalog destination
 @Serializable
 data object CatalogDestination
 
+// NavGraphBuilder extension function to define the catalog screen
 fun NavGraphBuilder.catalogScreen(
 
     onNavigateToLogin: () -> Unit,
@@ -639,6 +687,7 @@ fun NavGraphBuilder.catalogScreen(
 
 ) {
 
+    // Composable for the catalog screen with its associated destination
     composable<CatalogDestination> {
 
         val context = LocalContext.current.applicationContext
@@ -661,6 +710,7 @@ fun NavGraphBuilder.catalogScreen(
 
 }
 
+// Extension function to navigate to the catalog screen
 fun NavController.navigateToCatalog() {
 
     navigate(CatalogDestination)

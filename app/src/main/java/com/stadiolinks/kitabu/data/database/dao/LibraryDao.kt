@@ -1,7 +1,6 @@
 package com.stadiolinks.kitabu.data.database.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
@@ -17,7 +16,7 @@ interface LibraryDao {
     @Query("SELECT * FROM books")
     fun getAllBooks(): Flow<List<BookEntity>> // Retrieves all books from the database
 
-    @Query("SELECT * FROM books WHERE isAvailable = true")
+    @Query("SELECT * FROM books WHERE isAvailable = 1")
     fun getAvailableBooks(): Flow<List<BookEntity>> // Retrieves all available books from the database
 
     @Query("SELECT * FROM bookings WHERE status IN (:status)")
@@ -56,13 +55,13 @@ interface LibraryDao {
     }
 
     @Query("UPDATE bookings SET status = 'ACTIVE' WHERE bookingID = :bookingID")
-    suspend fun updateStatusToActive(bookingID: Int)
+    suspend fun updateStatusToActive(bookingID: Int) // Updates the status of a booking to active
 
-    @Query("UPDATE books SET isAvailable = true WHERE bookID = :bookID")
-    suspend fun updateBookToAvailable(bookID: Int)
+    @Query("UPDATE books SET isAvailable = 1 WHERE bookID = :bookID")
+    suspend fun updateBookToAvailable(bookID: Int) // Updates the availability of a book to available
 
     @Query("UPDATE bookings SET status = 'RETURNED' WHERE bookingID = :bookingID")
-    suspend fun updateStatusToReturned(bookingID: Int)
+    suspend fun updateStatusToReturned(bookingID: Int) // Updates the status of a booking to returned
 
 
     // Transaction that updates book availability and booking status when a book is returned
@@ -75,7 +74,7 @@ interface LibraryDao {
     }
 
     @Query("DELETE FROM bookings WHERE bookingID = :bookingID")
-    suspend fun deleteBooking(bookingID: Int)
+    suspend fun deleteBooking(bookingID: Int) // Deletes a booking from the database
 
     // Transaction that cancels a pending booking and restores book availability
     @Transaction

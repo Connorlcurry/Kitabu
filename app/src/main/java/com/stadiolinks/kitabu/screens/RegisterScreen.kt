@@ -172,6 +172,7 @@ fun RegisterScreen(
 
                     )
 
+                    // Navigate to login button
                     TextButton(onClick = onNavigateToLogin) {
 
                         Text(
@@ -187,6 +188,7 @@ fun RegisterScreen(
 
                     }
 
+                    // Username field
                     OutlinedTextField(
 
                         value = username,
@@ -205,6 +207,7 @@ fun RegisterScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Email field
                     OutlinedTextField(
 
                         value = email,
@@ -223,6 +226,7 @@ fun RegisterScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Password field
                     OutlinedTextField(
 
                         value = password,
@@ -242,16 +246,19 @@ fun RegisterScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Register button
                     Button(
 
                         onClick = {
 
+                            // Checks fields are populated before executing the register function
                             if (username.isBlank() || email.isBlank() || password.isBlank()) {
 
                                 Toast.makeText(context, "Please fill in all fields.", Toast.LENGTH_SHORT).show()
 
                             } else {
 
+                                // Creates a new user entity and triggers the registration
                                 val newUser = UserEntity(userName = username, email = email, password = password)
                                 authViewModel.register(newUser)
 
@@ -281,9 +288,11 @@ fun RegisterScreen(
 
 }
 
+// Serializable object representing the register destination
 @Serializable
 object RegisterDestination
 
+// NavGraphBuilder extension function to define the register screen
 fun NavGraphBuilder.registerScreen(
 
     onNavigateToCatalog: () -> Unit,
@@ -291,6 +300,7 @@ fun NavGraphBuilder.registerScreen(
 
 ) {
 
+    // Composable for the register screen with its associated destination
     composable<RegisterDestination> {
 
         val context = LocalContext.current.applicationContext
@@ -312,6 +322,7 @@ fun NavGraphBuilder.registerScreen(
 
 }
 
+// Extension function to navigate to the register screen
 fun NavController.navigateToRegister() {
 
     navigate(RegisterDestination)
